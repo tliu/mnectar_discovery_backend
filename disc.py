@@ -3,6 +3,7 @@ from flask import g
 from flask import Flask
 from os import listdir
 import json
+from scrape import scrape
 
 app = Flask(__name__)
 DATABASE = 'disc.db'
@@ -36,6 +37,22 @@ image_path_prefix = "/assets/"
 def get_game_images(id):
     return json.dumps(map(lambda x:image_path_prefix + "%s/%s" % (id, x), listdir(".%s/%s" % (image_path_prefix, id))))
 
+
+@app.route("/game/add/<package>")
+def add_package(package):
+    cur = get_db().cursor()
+    cur.execute("insert into game (package) values (?)", (package,))
+    get_db().commit()
+    id = cur.lastrowid
+    res = scrape(id, package)
+    name = res[0]
+    desc = res[1]
+    rating = float(res[2])
+    activity = res[2]
+    cur.execute("update game set name='%s',description='%s',rating=%f,activity='%s' where id=%d" % (name, desc, rating, activity, int(id)))
+    get_db().commit()
+    cur.connection.close()
+    return json.dumps(res)
 
 def query_db(query, args=(), one=False):
     cur = get_db().cursor()
