@@ -24,11 +24,29 @@ def close_connection(exception):
         db.close()
 
 
+@app.route("/game/categories")
+def get_categories():
+    cur = get_db().cursor()
+    query = cur.execute("select category from game group by category")
+    categories =  cur.fetchall()
+    category_dict = {}
+    for cat in categories:
+        query = query_db("select * from game where category='%s'" % cat[0])
+        category_dict[cat[0]] = query;
+
+    cur.connection.close()
+    return json.dumps(category_dict)
+
+@app.route("/game/category/<category>")
+def get_games_in_category(category):
+    query = query_db("select id from game where category='%s'" % category)
+    return json.dumps(query)
+
 @app.route("/game/<id>")
 def get_game_by_id(id):
     query = query_db("select * from game where id=%s" % id)
-    print query
     return json.dumps(query)
+
 
 
 image_path_prefix = "/assets/"
@@ -48,18 +66,18 @@ def add_package(package):
     name = res[0]
     desc = res[1]
     rating = float(res[2])
-    activity = res[2]
-    cur.execute("update game set name='%s',description='%s',rating=%f,activity='%s' where id=%d" % (name, desc, rating, activity, int(id)))
+    activity = res[4]
+    category = res[5]
+    cur.execute("update game set name='%s',description='%s',rating=%f,activity='%s',category='%s' where id=%d" % (name, desc, rating, activity, category, int(id)))
     get_db().commit()
     cur.connection.close()
-    return json.dumps(res)
+    return json.dumps(id)
 
 def query_db(query, args=(), one=False):
     cur = get_db().cursor()
     cur.execute(query, args)
     r = [dict((cur.description[i][0], value) \
                for i, value in enumerate(row)) for row in cur.fetchall()]
-    cur.connection.close()
     return (r[0] if r else None) if one else r
 
 if __name__ == "__main__":

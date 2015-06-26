@@ -25,6 +25,7 @@ def scrape(id, package):
     name = html.split('itemprop="name"')[1].split("</div>")[0].split("<div>")[1]
     desc = html.split('<div class="show-more-content text-body" itemprop="description">')[1].split('<div class="show-more-end">')[0]
     rating = html.split("Rated ")[1].split(" stars")[0]
+    category = html.split('<span itemprop="genre">')[1].split("</span>")[0]
 
     stuff = []
     for line in html.split("</div>"):
@@ -66,7 +67,7 @@ def scrape(id, package):
         if "launchable-activity" in line:
             activity = line.split("'")[1]
 
-    return [name, desc, rating, package, activity]
+    return [name, desc, rating, package, activity, category]
 
 
 
