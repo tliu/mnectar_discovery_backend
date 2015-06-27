@@ -1,0 +1,177 @@
+<html>
+<head>
+</head>
+<body style="margin: 0px;">
+    <div style="width:320px; height:480px; position: absolute;" id="mnectar-canvas"></div>
+<script>
+function parse(val) {
+    var result = null,
+    tmp = [];
+    location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+        tmp = item.split("=");
+        if (tmp[0] === val) result = decodeURIComponent(tmp[1]);
+    });
+    return result;
+}
+</script>
+<script src="http://192.168.1.222:8004/vm.js"></script>
+
+<script>
+function selectText(containerid) {
+    if (document.selection) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(document.getElementbyId(containerid));
+        range.select();
+    } else if (window.getSelection) {
+        var range = document.createRange();
+        range.selectNode(document.getElementById(containerid));
+        window.getSelection().addRange(range);
+    }
+}
+</script>
+<script>
+mNectar.Session = mNectar.Session || {};
+
+var WEBP_QUALITY = 40;
+var imageType = "pjd";
+var quality = parse('q') || 60;
+var fps = parse('fps') || 60;
+
+var orien = 'p';
+var screenBottomLen = 320;
+var screenSideLen = 480;
+
+var AVAIALABLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678";
+
+var getRandomString = function(length) {
+    if (length <= 0) {
+        throw "Length must be greater than 0.";
+    }
+
+    var value = "";
+    for (var i = 0; i < length; i++) {
+        value += AVAIALABLE_CHARACTERS.charAt(Math.floor(Math.random() * AVAIALABLE_CHARACTERS.length));
+    }
+    return value.toString();
+}
+var data = {
+    virtualMachineInstanceHost: "",
+    virtualMachineProfile: {
+        screenWidth: orien == 'p' ? screenBottomLen : screenSideLen,
+        screenHeight: orien == 'p' ? screenSideLen : screenBottomLen,
+        httpReadPort: 4823,
+        httpWritePort: 4824,
+        websocketPort: 4825,
+        packageName: '',
+        launchActivityName: ''
+    },
+    deviceOrientation: {
+        identifier: orien
+    },
+    playDuration: '',
+    sessionIdentifier: getRandomString(8)
+};
+
+var startStream = function() {
+    quality = 40;
+    fps = 60;
+    data.virtualMachineInstanceHost = "{{ip}}";
+    orien = "{{orien}}";
+    if (orien == "l") {
+        var c = document.getElementById("mnectar-canvas");
+        c.style.left = 320;
+        c.style.webkitTransform = "rotate(90deg)";
+        c.style.webkitTransformOrigin = "left top";
+    }
+
+    data.virtualMachineProfile.screenWidth =  orien == 'p' ? screenBottomLen : screenSideLen;
+    data.virtualMachineProfile.screenHeight =  orien == 'p' ? screenSideLen : screenBottomLen;
+    data.deviceOrientation.identifier = orien;
+
+
+    if (false) { // webpcheck
+        var webPTestImage = new Image();
+        webPTestImage.onload = webPTestImage.onerror = function() {
+            if(webPTestImage.height == 2) {
+                imageType = "webp";
+                quality = WEBP_QUALITY;
+            }
+
+            readySession(data);
+        };
+        webPTestImage.src='data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+    } else {
+        readySession(data);
+    }
+    mNectar.Session.vmClient = new mNectar.VmClient(mNectar.Session);
+    mNectar.Session.vmClient.connect();
+
+}
+
+
+function readySession(data) {
+    mNectar.Session.vmSessionWsUrl =
+        "ws://" + data.virtualMachineInstanceHost + ":" + data.virtualMachineProfile.websocketPort + "/m/vm/v1/session/ws?" +
+        "wsp=" + data.virtualMachineProfile.websocketPort + "&" +
+        "pn=" + data.virtualMachineProfile.packageName + "&" +
+        "an=" + data.virtualMachineProfile.launchActivityName + "&" +
+        "pd=" + data.playDuration + "&" +
+        "sw=" + data.virtualMachineProfile.screenWidth + "&" +
+        "sh=" + data.virtualMachineProfile.screenHeight + "&" +
+        "sid=" + data.sessionIdentifier + "&" +
+        "o=" + data.deviceOrientation.identifier + "&" +
+        "t=" + imageType + "&" +
+        "q=" + quality + "&" +
+        "fps=" + fps + "&" +
+        "r=" + Math.random();
+
+    mNectar.Session.vmSessionWsPort = data.virtualMachineProfile.websocketPort;
+
+    mNectar.Session.vmSessionHttpArgs =
+        "hrp=" + data.virtualMachineProfile.httpReadPort + "&" +
+        "hwp=" + data.virtualMachineProfile.httpWritePort + "&" +
+        "pn=" + data.virtualMachineProfile.packageName + "&" +
+        "an=" + data.virtualMachineProfile.launchActivityName + "&" +
+        "pd=" + data.playDuration + "&" +
+        "sw=" + data.virtualMachineProfile.screenWidth + "&" +
+        "sh=" + data.virtualMachineProfile.screenHeight + "&" +
+        "sid=" + data.sessionIdentifier + "&" +
+        "o=" + data.deviceOrientation.identifier + "&" +
+        "t=" + imageType + "&" +
+        "q=" + quality + "&" +
+        "r=" + Math.random();
+
+    mNectar.Session.vmSessionHttpReadPort = data.virtualMachineProfile.httpReadPort;
+    mNectar.Session.vmSessionHttpWritePort = data.virtualMachineProfile.httpWritePort;
+
+    mNectar.Session.vmSessionHttpReadUrl = "http://" + data.virtualMachineInstanceHost + ":" + data.virtualMachineProfile.httpReadPort;
+    mNectar.Session.vmSessionHttpWriteUrl = "http://" + data.virtualMachineInstanceHost + ":" + data.virtualMachineProfile.httpWritePort;
+
+    mNectar.Session.streamWidth = data.virtualMachineProfile.screenWidth;
+    mNectar.Session.streamHeight = data.virtualMachineProfile.screenHeight;
+    mNectar.Session.orientation = data.deviceOrientation.identifier
+    mNectar.Session.containerId = "mnectar-canvas";
+
+    mNectar.Session.vmTimeout = function() {
+        //$('#vm_status').text("Timeout")
+    };
+    mNectar.Session.vmError = function() {
+//        $('#vm_status').text("Error")
+    };
+    mNectar.Session.vmOpen = function() {
+        //$('#vm_status').text("Open")
+    };
+    mNectar.Session.vmFailed = function() {
+        //$('#vm_status').text("Failed")
+    };;
+    mNectar.Session.vmClose = function() {
+        console.log("STOP THE GATES");
+    };;
+}
+
+startStream();
+</script>
+</body></html>

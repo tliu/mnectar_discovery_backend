@@ -81,4 +81,4 @@ def query_db(query, args=(), one=False):
     return (r[0] if r else None) if one else r
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8002)
