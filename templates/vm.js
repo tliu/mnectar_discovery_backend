@@ -548,9 +548,18 @@ mNectar.VmClient.prototype._touchStart = function (e) {
         return;
     }
 
+
     for (var ix = 0; ix < e.changedTouches.length; ix++) {
         var touch = e.changedTouches[ix];
-        this._queueTouchInteraction(1, touch.identifier, touch.clientX, touch.clientY);
+        var x= touch.clientX;
+        var y= touch.clientY;
+        if (this._orientation == "l") {
+            y = 320 - touch.clientX;
+            x = touch.clientY;
+        }
+        console.log(touch.clientX);
+        console.log(touch.clientY);
+        this._queueTouchInteraction(1, touch.identifier, x, y);
     }
 };
 
@@ -563,7 +572,15 @@ mNectar.VmClient.prototype._touchMove = function (e) {
 
     for (var ix = 0; ix < e.changedTouches.length; ix++) {
         var touch = e.changedTouches[ix];
-        this._queueTouchInteraction(2, touch.identifier, touch.clientX, touch.clientY);
+        var x= touch.clientX;
+        var y= touch.clientY;
+        if (this._orientation == "l") {
+            y = 320 - touch.clientX;
+            x = touch.clientY;
+        }
+        console.log(touch.clientX);
+        console.log(touch.clientY);
+        this._queueTouchInteraction(2, touch.identifier, x, y);
     }
 };
 
@@ -576,7 +593,15 @@ mNectar.VmClient.prototype._touchEnd = function (e) {
 
     for (var ix = 0; ix < e.changedTouches.length; ix++) {
         var touch = e.changedTouches[ix];
-        this._queueTouchInteraction(3, touch.identifier, touch.clientX, touch.clientY);
+        var x= touch.clientX;
+        var y= touch.clientY;
+        if (this._orientation == "l") {
+            y = 320 - touch.clientX;
+            x = touch.clientY;
+        }
+        console.log(touch.clientX);
+        console.log(touch.clientY);
+        this._queueTouchInteraction(3, touch.identifier, x, y);
     }
 };
 

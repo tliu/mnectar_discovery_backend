@@ -3,6 +3,10 @@
 </head>
 <body style="margin: 0px;">
     <div style="width:320px; height:480px; position: absolute;" id="mnectar-canvas"></div>
+    <div>
+        <img src="data:image/png;base64,{{img}}" style="position:absolute; top: 486px; left: 6px; height: 60px; width: 60px;">
+        <span style="font-family: 'Times New Roman', Georgia; font-weight: bold; size: 24px; position:absolute; top: 490px; left: 72px; width: 240px; word-wrap: break-word;">{{name}}</span>
+    </div>
 <script>
 function parse(val) {
     var result = null,
@@ -76,8 +80,8 @@ var data = {
 };
 
 var startStream = function() {
-    quality = 40;
-    fps = 60;
+    quality = 70;
+    fps = 40;
     data.virtualMachineInstanceHost = "{{ip}}";
     orien = "{{orien}}";
     if (orien == "l") {

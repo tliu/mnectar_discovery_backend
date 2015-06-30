@@ -1,9 +1,11 @@
 from flask import Flask
+import base64
 import json
 from flask import render_template
 import requests
 import os
 import hashlib
+import time
 print os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 app = Flask(__name__, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static'))
 
@@ -40,35 +42,38 @@ def install_and_launch(id):
     files = os.listdir(path)
     package = ""
     activity = ""
+    orien = "p"
     for f in files:
         if ".apk" in f:
             apk = open(path + f)
             pna = get_package_and_activity(path + f)
             package = pna[0]
             activity = pna[1]
+        if "orien" in f:
+            orien = f.strip().split("-")[1]
 
 
     req = '%s%d:%s/admin/app/launch?package=%s&activity=%s' % (ip_prefix, ip, ip_port, package, activity)
     r = requests.get(req)
+
 
     curr = ""
     while curr != package:
         curr = requests.get("%s%d:6001/admin/app/package" % (ip_prefix, ip)).text
         print curr
 
-#    os.popen("adb disconnect")
-#    os.popen("adb connect %s%d" % (just_ip, ip))
-#    o = os.popen("adb shell \"dumpsys input | grep SurfaceOrientation | awk '{print $2}' | head -n 1\"").read()
-#    orien = o.split(":")[1].strip()
-#    if orien == "0" or orien == "2":
-#        orien = "l"
-#    else:
-#        orien = "p"
+    #req = '%s%d:%s/admin/device/exec' % (ip_prefix, ip, ip_port)
+    #r = requests.post(req, data="content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0")
+    #r = requests.post(req, data="content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:3")
+    #time.sleep(5)
 
-    orien = "l"
-#
+    img = ""
+    with open("./assets/%s/logo.png" % id, "rb") as img_file:
+        img = base64.b64encode(img_file.read())
 
-    return render_template("vmtest.html", ip = "%s%s" % (just_ip, ip), orien = orien)
+    name = requests.get("http://192.168.1.222:8002/game/%s/name" % id).text
+
+    return render_template("vmtest.html", ip = "%s%s" % (just_ip, ip), orien = orien, name=name, img=img, package=package)
 #md5sum:
 #package:
 #activity:

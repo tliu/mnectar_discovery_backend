@@ -24,6 +24,14 @@ def close_connection(exception):
         db.close()
 
 
+@app.route("/game/<id>/name")
+def get_name(id):
+    cur = get_db().cursor()
+    cur.execute("select name from game where id=%s" % id)
+    x =  cur.fetchall()
+    return x[0]
+
+
 @app.route("/game/categories")
 def get_categories():
     cur = get_db().cursor()
